@@ -1,0 +1,72 @@
+def __hash__(cls):
+    return hash(tuple(getattr(cls, slot) for slot in cls.__slots__))
+
+
+def __str__(self):
+    return f'{self.__class__.__name__}({", ".join(str(getattr(self, slot)) for slot in self.__slots__)})'
+
+
+def __eq__(self, other):
+    if isinstance(other, self.__class__):
+        return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
+    return False
+
+
+class SlottedStruct(type):
+    def __new__(cls, name, bases, attrs):
+        cls.__slots__ = attrs.get('__slots__', ())
+        attrs['__str__'] = __str__
+        attrs['__eq__'] = __eq__
+        attrs['__hash__'] = __hash__
+        return super().__new__(cls, name, bases, attrs)
+
+
+class Point2D(metaclass=SlottedStruct):
+    __slots__ = ('_x', '_y')
+
+    def __init__(self, x, y):
+        self._x = x
+        self._y = y
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+
+class Point3D(metaclass=SlottedStruct):
+    __slots__ = ('_x', '_y', '_z')
+
+    def __init__(self, x, y, z):
+        self._x = x
+        self._y = y
+        self._z = z
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    @property
+    def z(self):
+        return self._z
+
+
+# Testing with Point2D and Point3D
+p1 = Point2D(1, 2)
+p2 = Point2D(1, 2)
+print(p1)  # Output: Point2D(1, 2)
+print(p2)  # Output: Point2D(1, 2)
+print(p1 == p2)  # Output: True
+
+
+p3 = Point3D(1, 2, 3)
+p4 = Point3D(1, 2, 3)
+print(p3)  # Output: Point3D(1, 2, 3)
+print(p3 == p4)  # Output: True
